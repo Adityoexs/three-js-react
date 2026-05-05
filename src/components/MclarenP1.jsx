@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
@@ -21,67 +21,102 @@ export default function MclarenP1({
   const groupRef = useRef();
   const spoilerRef = useRef();
 
-  // --- Materials -----------------------------------------------------------
+  // --- Materials (memoized to avoid recreation on every render) -----------
 
   // Main body — glossy metallic paint (MeshPhysicalMaterial)
-  const bodyMat = new THREE.MeshPhysicalMaterial({
-    color: new THREE.Color(bodyColor),
-    metalness: 0.9,
-    roughness: 0.1,
-    clearcoat: 1.0,
-    clearcoatRoughness: 0.05,
-    reflectivity: 1.0,
-  });
+  const bodyMat = useMemo(
+    () =>
+      new THREE.MeshPhysicalMaterial({
+        color: new THREE.Color(bodyColor),
+        metalness: 0.9,
+        roughness: 0.1,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.05,
+        reflectivity: 1.0,
+      }),
+    [bodyColor]
+  );
 
   // Carbon fiber panels — dark matte composite look
-  const carbonMat = new THREE.MeshPhysicalMaterial({
-    color: new THREE.Color('#111111'),
-    metalness: 0.5,
-    roughness: 0.4,
-  });
+  const carbonMat = useMemo(
+    () =>
+      new THREE.MeshPhysicalMaterial({
+        color: new THREE.Color('#111111'),
+        metalness: 0.5,
+        roughness: 0.4,
+      }),
+    []
+  );
 
   // Glass — highly transparent, slightly tinted
-  const glassMat = new THREE.MeshPhysicalMaterial({
-    color: new THREE.Color('#88aacc'),
-    transmission: 0.95,
-    transparent: true,
-    opacity: 0.3,
-    roughness: 0,
-    metalness: 0,
-    side: THREE.DoubleSide,
-  });
+  const glassMat = useMemo(
+    () =>
+      new THREE.MeshPhysicalMaterial({
+        color: new THREE.Color('#88aacc'),
+        transmission: 0.95,
+        transparent: true,
+        opacity: 0.3,
+        roughness: 0,
+        metalness: 0,
+        side: THREE.DoubleSide,
+      }),
+    []
+  );
 
   // Rim — gunmetal metallic
-  const rimMat = new THREE.MeshPhysicalMaterial({
-    color: new THREE.Color('#444455'),
-    metalness: 1,
-    roughness: 0.2,
-  });
+  const rimMat = useMemo(
+    () =>
+      new THREE.MeshPhysicalMaterial({
+        color: new THREE.Color('#444455'),
+        metalness: 1,
+        roughness: 0.2,
+      }),
+    []
+  );
 
   // Tyre — dark rubber
-  const tyreMat = new THREE.MeshStandardMaterial({
-    color: new THREE.Color('#1a1a1a'),
-    roughness: 0.9,
-    metalness: 0,
-  });
+  const tyreMat = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: new THREE.Color('#1a1a1a'),
+        roughness: 0.9,
+        metalness: 0,
+      }),
+    []
+  );
 
-  // Headlight emissive
-  const headlightMat = new THREE.MeshPhysicalMaterial({
-    color: new THREE.Color('#ffffff'),
-    emissive: new THREE.Color('#ffffff'),
-    emissiveIntensity: headlightsOn ? 2 : 0,
-    metalness: 0.5,
-    roughness: 0.1,
-  });
+  // Headlight emissive — intensity toggles with headlightsOn prop
+  const headlightMat = useMemo(
+    () =>
+      new THREE.MeshPhysicalMaterial({
+        color: new THREE.Color('#ffffff'),
+        emissive: new THREE.Color('#ffffff'),
+        emissiveIntensity: headlightsOn ? 2 : 0,
+        metalness: 0.5,
+        roughness: 0.1,
+      }),
+    [headlightsOn]
+  );
 
   // Taillight emissive
-  const taillightMat = new THREE.MeshPhysicalMaterial({
-    color: new THREE.Color('#ff0000'),
-    emissive: new THREE.Color('#ff0000'),
-    emissiveIntensity: 2,
-    metalness: 0.5,
-    roughness: 0.1,
-  });
+  const taillightMat = useMemo(
+    () =>
+      new THREE.MeshPhysicalMaterial({
+        color: new THREE.Color('#ff0000'),
+        emissive: new THREE.Color('#ff0000'),
+        emissiveIntensity: 2,
+        metalness: 0.5,
+        roughness: 0.1,
+      }),
+    []
+  );
+
+  // Brake caliper — shared orange material
+  const caliperMat = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({ color: '#ff8800', roughness: 0.5 }),
+    []
+  );
 
   // --- Animation -----------------------------------------------------------
 
@@ -383,9 +418,7 @@ export default function MclarenP1({
       ].map(([cx, cy, cz], i) => (
         <mesh
           key={i}
-          material={
-            new THREE.MeshStandardMaterial({ color: '#ff8800', roughness: 0.5 })
-          }
+          material={caliperMat}
           position={[cx, cy, cz]}
           castShadow
         >
